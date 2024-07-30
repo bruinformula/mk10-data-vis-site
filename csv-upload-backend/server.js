@@ -1,19 +1,17 @@
 const express = require('express');
 const fileUpload = require('express-fileupload');
-const { Pool } = require('pg');
+const { InfluxDB, Point } = require('@influxdata/influxdb-client');
 const Papa = require('papaparse');
 const cors = require('cors');
+
 const app = express();
 app.use(cors());
 app.use(fileUpload());
 
-const pool = new Pool({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'datavis_database',
-  password: 'SoftwareIsBestSubteam',
-  port: 5432,
-});
+const token = 'pGbHo_VaHFs4TwlkKX7TKxyIos9C9swN-vTucxlm2uzoCNCX9Q3QlBYQ-IgPLYQf6ZqNVsNmGHEH9wXwliiZ4A==';
+const org = 'BFR';
+const bucket = 'datavistest';
+const client = new InfluxDB({ url: 'http://localhost:8086', token });
 
 app.post('/upload', (req, res) => {
   if (!req.files || Object.keys(req.files).length === 0) {
@@ -25,13 +23,32 @@ app.post('/upload', (req, res) => {
     header: true,
     complete: (results) => {
       const data = results.data;
-      const query = 'INSERT INTO datavis_table (column1, column2) VALUES ($1, $2)';
+      const writeApi = client.getWriteApi(org, bucket);
+      writeApi.useDefaultTags({ host: 'host1' });
+
       data.forEach(row => {
-        pool.query(query, [row.column1, row.column2]);
+        if (row._time && row.acceleration) {
+          const value = parseFloat(row.acceleration);
+          const timestamp = new Date(row._time).getTime() * 1000000;
+          console.log(`Parsed row: _time=${row._time}, acceleration=${row.acceleration}`);
+          console.log(`Writing point: acceleration value=${value} ${timestamp}`);
+
+          const point = new Point('acceleration')
+            .floatField('value', value)
+            .timestamp(timestamp);
+
+          writeApi.writePoint(point);
+        } else {
+          console.log(`Skipping invalid row: ${JSON.stringify(row)}`);
+        }
       });
-      res.send('File uploaded and data inserted');
+
+      writeApi
+        .close()
+        .then(() => res.send('File uploaded and data inserted'))
+        .catch(err => res.status(500).send(err.stack));
     },
   });
 });
 
-app.listen(3000, () => console.log('Server started on port 3000'));
+app.listen(5001, () => console.log('Server started on port 5001'));

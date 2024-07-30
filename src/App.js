@@ -11,7 +11,7 @@ const App = () => {
     const formData = new FormData();
     formData.append('file', file);
 
-    await fetch('http://localhost:3000/upload', {
+    await fetch('http://localhost:5001/upload', {
       method: 'POST',
       body: formData,
     });
@@ -25,7 +25,7 @@ const App = () => {
       <UploadCSV handleFileUpload={handleFileUpload} />
       {uploaded && (
         <iframe
-          src="https://kaitoshawtyyy.grafana.net/goto/8aEzqkXIR?orgId=1"
+          src="http://localhost:3000/d/fdsshyafq8qv4e/new-dashboard?orgId=1&from=1722113737754&to=1722135337754&viewPanel=2"
           width="100%"
           height="800px"
           frameBorder="0"
