@@ -21,16 +21,10 @@ const App = () => {
 
   return (
     <div className="App">
-      <h1>Data Visualizer with Grafana</h1>
+      <h1>Data Visualizer</h1>
       <UploadCSV handleFileUpload={handleFileUpload} />
       {uploaded && (
-        <iframe
-          src="http://localhost:3000/d/fdsshyafq8qv4e/new-dashboard?orgId=1&from=1722113737754&to=1722135337754&viewPanel=2"
-          width="100%"
-          height="800px"
-          frameBorder="0"
-          allowFullScreen
-        ></iframe>
+        <iframe src="http://localhost:3000/d-solo/fdsshyafq8qv4e/new-dashboard?orgId=1&from=1722112557602&to=1722139927192&panelId=2" width="1000" height="500" frameborder="0"></iframe>
       )}
     </div>
   );
