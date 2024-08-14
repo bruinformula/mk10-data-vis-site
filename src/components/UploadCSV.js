@@ -1,15 +1,23 @@
-import React from 'react';
+// UploadCSV.js
+import React, { useState } from 'react';
 
 const UploadCSV = ({ handleFileUpload }) => {
-    return (
-        <div>
-            <input
-                type = "file"
-                accept = ".csv"
-                onChange={(e) => handleFileUpload(e.target.files[0])}
-            />
-        </div>
-    );
-}
+  const [selectedFiles, setSelectedFiles] = useState([]);
 
-export default UploadCSV; 
+  const handleFileChange = (event) => {
+    setSelectedFiles(event.target.files);
+  };
+
+  const handleUpload = () => {
+    Array.from(selectedFiles).forEach(file => handleFileUpload(file));
+  };
+
+  return (
+    <div>
+      <input type="file" multiple accept=".csv" onChange={handleFileChange} />
+      <button onClick={handleUpload}>Upload</button>
+    </div>
+  );
+};
+
+export default UploadCSV;
