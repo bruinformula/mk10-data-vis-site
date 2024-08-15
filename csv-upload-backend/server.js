@@ -49,6 +49,10 @@ app.post('/upload', async (req, res) => {
       group7: [], // Pitot Tube Air Pressure
   };
 
+  // Variables to store the earliest and latest timestamps
+  let minTimestamp = null;
+  let maxTimestamp = null;
+
   try {
       await deleteAllData();
 
@@ -62,45 +66,45 @@ app.post('/upload', async (req, res) => {
               try {
                   for (let row of data) {
                       if (row._time) {
-                          const timestamp = new Date(row._time).getTime() * 1000000;
+                          const timestamp = new Date(row._time).getTime();
+                          // Update min and max timestamps
+                          if (!minTimestamp || timestamp < minTimestamp) minTimestamp = timestamp;
+                          if (!maxTimestamp || timestamp > maxTimestamp) maxTimestamp = timestamp;
+
+                          const influxTimestamp = timestamp * 1000000;
                           for (let key in row) {
-                              if (key !== '_time') {
-                                  if (!isNaN(parseFloat(row[key]))) {
-                                      const value = parseFloat(row[key]);
-                                      console.log(`Processing measurement: ${key}, value: ${value}`);
+                              if (key !== '_time' && !isNaN(parseFloat(row[key]))) {
+                                  const value = parseFloat(row[key]);
 
-                                      // Grouping logic
-                                      if (["TRV cooling water flow", "TRV cooling airflow", "TRV water pressure"].includes(key)) {
-                                          measurementGroups.group1.push(key);
-                                      } else if (["ACY cooling airflow", "ACY cooling temps"].includes(key)) {
-                                          measurementGroups.group2.push(key);
-                                      } else if (["Wheel Speed", "Steering Angle"].includes(key)) {
-                                          measurementGroups.group3.push(key);
-                                      } else if (["Shock Travel", "Tire Temperature"].includes(key)) {
-                                          measurementGroups.group4.push(key);
-                                      } else if (key === "Brake Rotor Temperature") {
-                                          measurementGroups.group5.push(key);
-                                      } else if (["Strain in suspension linkages", "Strain in half shafts"].includes(key)) {
-                                          measurementGroups.group6.push(key);
-                                      } else if (key === "Pitot Tube Air Pressure") {
-                                          measurementGroups.group7.push(key);
-                                      }
-
-                                      const point = new Point(key)
-                                          .floatField('value', value)
-                                          .timestamp(timestamp);
-
-                                      writeApi.writePoint(point);
-                                  } else {
-                                      console.log(`Invalid or missing value for ${key}: '${row[key]}'`);
+                                  // Grouping logic
+                                  if (["TRV cooling water flow", "TRV cooling airflow", "TRV water pressure"].includes(key)) {
+                                      measurementGroups.group1.push(key);
+                                  } else if (["ACY cooling airflow", "ACY cooling temps"].includes(key)) {
+                                      measurementGroups.group2.push(key);
+                                  } else if (["Wheel Speed", "Steering Angle"].includes(key)) {
+                                      measurementGroups.group3.push(key);
+                                  } else if (["Shock Travel", "Tire Temperature"].includes(key)) {
+                                      measurementGroups.group4.push(key);
+                                  } else if (key === "Brake Rotor Temperature") {
+                                      measurementGroups.group5.push(key);
+                                  } else if (["Strain in suspension linkages", "Strain in half shafts"].includes(key)) {
+                                      measurementGroups.group6.push(key);
+                                  } else if (key === "Pitot Tube Air Pressure") {
+                                      measurementGroups.group7.push(key);
                                   }
+
+                                  const point = new Point(key)
+                                      .floatField('value', value)
+                                      .timestamp(influxTimestamp);
+
+                                  writeApi.writePoint(point);
                               }
                           }
                       }
                   }
                   await writeApi.close();
                   console.log('Finished writing points');
-                  res.json({ measurementGroups });
+                  res.json({ measurementGroups, minTimestamp, maxTimestamp });
               } catch (err) {
                   console.error(`Error writing points: ${err.stack}`);
                   res.status(500).send(err.stack);
@@ -112,6 +116,5 @@ app.post('/upload', async (req, res) => {
       res.status(500).send(error.stack);
   }
 });
-
 
 app.listen(5001, () => console.log('Server started on port 5001'));
