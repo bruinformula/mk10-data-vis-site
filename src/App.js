@@ -3,7 +3,17 @@ import UploadCSV from './components/UploadCSV';
 import './App.css';
 
 const App = () => {
-  const [measurementGroups, setMeasurementGroups] = useState(null);
+  const [measurementGroups, setMeasurementGroups] = useState([]);
+  const [timeRanges, setTimeRanges] = useState([]);
+  const [loadedPanels, setLoadedPanels] = useState({
+    group1: false,
+    group2: false,
+    group3: false,
+    group4: false,
+    group5: false,
+    group6: false,
+    group7: false,
+  });
 
   const handleFileUpload = async (file) => {
     const formData = new FormData();
@@ -15,72 +25,41 @@ const App = () => {
     });
 
     const data = await response.json();
-    setMeasurementGroups(data.measurementGroups);
+    
+    setMeasurementGroups((prev) => [...prev, data.measurementGroups]);
+    setTimeRanges((prev) => [...prev, { from: data.minTimestamp, to: data.maxTimestamp }]);
+  };
+
+  const handleIframeLoad = (panelGroup) => {
+    setLoadedPanels((prev) => ({ ...prev, [panelGroup]: true }));
   };
 
   return (
     <div className="App">
       <h1>Data Visualizer</h1>
       <UploadCSV handleFileUpload={handleFileUpload} />
-      <div className="panels">
-        {measurementGroups && (
+      <div className="panels-container">
+        {measurementGroups.length > 0 && (
           <>
-            {measurementGroups.group1.length > 0 && (
-              <iframe 
-                src="http://localhost:3000/d-solo/fdsshyafq8qv4e/new-dashboard?orgId=1&panelId=3" 
-                width="750" 
-                height="500" 
-                frameborder="0">
-              </iframe>
-            )}
-            {measurementGroups.group2.length > 0 && (
-              <iframe 
-                src="http://localhost:3000/d-solo/fdsshyafq8qv4e/new-dashboard?orgId=1&panelId=4" 
-                width="750" 
-                height="500" 
-                frameborder="0">
-              </iframe>
-            )}
-            {measurementGroups.group3.length > 0 && (
-              <iframe 
-                src="http://localhost:3000/d-solo/fdsshyafq8qv4e/new-dashboard?orgId=1&panelId=5" 
-                width="750" 
-                height="500" 
-                frameborder="0">
-              </iframe>
-            )}
-            {measurementGroups.group4.length > 0 && (
-              <iframe 
-                src="http://localhost:3000/d-solo/fdsshyafq8qv4e/new-dashboard?orgId=1&panelId=6" 
-                width="750" 
-                height="500" 
-                frameborder="0">
-              </iframe>
-            )}
-            {measurementGroups.group5.length > 0 && (
-              <iframe 
-                src="http://localhost:3000/d-solo/fdsshyafq8qv4e/new-dashboard?orgId=1&panelId=7" 
-                width="750" 
-                height="500" 
-                frameborder="0">
-              </iframe>
-            )}
-            {measurementGroups.group6.length > 0 && (
-              <iframe 
-                src="http://localhost:3000/d-solo/fdsshyafq8qv4e/new-dashboard?orgId=1&panelId=8" 
-                width="750" 
-                height="500" 
-                frameborder="0">
-              </iframe>
-            )}
-            {measurementGroups.group7.length > 0 && (
-              <iframe 
-                src="http://localhost:3000/d-solo/fdsshyafq8qv4e/new-dashboard?orgId=1&panelId=9" 
-                width="750" 
-                height="500" 
-                frameborder="0">
-              </iframe>
-            )}
+            {['group1', 'group2', 'group3', 'group4', 'group5', 'group6', 'group7'].map((groupKey, panelIndex) => (
+              <div key={groupKey} className="panel-group">
+                {measurementGroups.map((group, index) => (
+                  group[groupKey].length > 0 && (
+                    <div key={`${groupKey}-${index}`} className="panel">
+                      <iframe
+                        src={`http://localhost:3000/d-solo/fdsshyafq8qv4e/new-dashboard?orgId=1&panelId=${panelIndex + 3}&from=${timeRanges[index].from}&to=${timeRanges[index].to}`}
+                        width="600"
+                        height="400"
+                        frameBorder="0"
+                        onLoad={() => handleIframeLoad(groupKey)}
+                        style={{ display: loadedPanels[groupKey] ? 'block' : 'none' }}
+                      >
+                      </iframe>
+                    </div>
+                  )
+                ))}
+              </div>
+            ))}
           </>
         )}
       </div>
@@ -89,6 +68,7 @@ const App = () => {
 };
 
 export default App;
+
 
 //fix time frame issue: right now, the panels aren't dynamic -> 
 //that means, panels are hardcoded and dependent on timeframe..

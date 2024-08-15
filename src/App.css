@@ -36,3 +36,33 @@
     transform: rotate(360deg);
   }
 }
+
+.csv-panel {
+  flex: 1;
+  min-width: 750px;
+}
+
+.panels-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panel {
+  flex: 1 1 25%;
+  box-sizing: border-box;
+}
+
+
+
+.panel-group {
+  display: flex;
+  justify-content: center; /* Center the entire group */
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+
+.panel-group .panel:nth-child(1) {
+  margin-left: 150px; /* Adjust this value to move the first panel of each group more to the center */
+}
