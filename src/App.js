@@ -69,11 +69,3 @@ const App = () => {
 
 export default App;
 
-
-//fix time frame issue: right now, the panels aren't dynamic -> 
-//that means, panels are hardcoded and dependent on timeframe..
-
-//new issue, grafana standard doesn't support dynamic timeframes 
-
-//if some random data from who knows when gets added, basically, shit not gonna work because rn
-//the panel only cover the past 30 days.. 
