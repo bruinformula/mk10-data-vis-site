@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import UploadCSV from './components/UploadCSV';
+import ToggleSwitch from './components/ToggleSwitch';
 import './App.css';
 
 const App = () => {
@@ -34,9 +35,27 @@ const App = () => {
     setLoadedPanels((prev) => ({ ...prev, [panelGroup]: true }));
   };
 
+  const handleToggle = (groupKey) => {
+    setLoadedPanels((prev) => ({ ...prev, [groupKey]: !prev[groupKey] }));
+  };
+
   return (
     <div className="App">
       <h1>Data Visualizer</h1>
+
+      <div className="toggles-container">
+        {['log scale', 'feature2', 'feature3', 'feature4'].map((groupKey) => (
+        <div className="toggle-item" key={groupKey}>
+        <ToggleSwitch
+        key={groupKey}
+        onToggle={() => handleToggle(groupKey)}  // Toggle function
+        isOn={loadedPanels[groupKey]}  // Current toggle state
+          />
+          <small className="toggle-label">{groupKey}</small> {/* Label directly under the toggle */}
+        </div>
+            ))}
+        </div>
+
       <UploadCSV handleFileUpload={handleFileUpload} />
       <div className="panels-container">
         {measurementGroups.length > 0 && (
