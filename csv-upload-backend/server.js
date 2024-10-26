@@ -80,7 +80,7 @@ app.post('/upload', async (req, res) => {
                                   const value = parseFloat(row[key]);
 
                                   // Grouping logic
-                                  if (["TRV cooling water flow", "TRV cooling airflow", "TRV water pressure"].includes(key)) {
+                                  if (["TRV cooling water flow", "TRV cooling airflow", "TRV water pressure", "TRV rad inlet temp" , "TRV rad outlet temp"].includes(key)) {
                                       measurementGroups.group1.push(key);
                                   } else if (["ACY cooling airflow", "ACY cooling temps"].includes(key)) {
                                       measurementGroups.group2.push(key);
@@ -94,7 +94,12 @@ app.post('/upload', async (req, res) => {
                                       measurementGroups.group6.push(key);
                                   } else if (key === "Pitot Tube Air Pressure") {
                                       measurementGroups.group7.push(key);
+                                  } else if (["SOC", "battery health", "temp", "pack voltage", "current", "average cell voltage", "highest cell voltage", "lowest cell voltage", "highest clel temp", "lowest cell temp", "average cell temp", "balancing current", "C-rate", "relay states", "fault states", "peanits"].includes(key)) {
+                                    measurementGroups.group8.push(key);
+                                  } else if (["3-Axis Accelerometer", "Gyroscope", "Magnetometer data"].includes(key)) {
+                                    measurementGroups.group9.push(key);
                                   }
+                            
 
                                   const point = new Point(key)
                                       .floatField('value', value)
