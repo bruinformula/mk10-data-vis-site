@@ -40,13 +40,16 @@ app.post('/upload', async (req, res) => {
 
   const file = req.files.file;
   let measurementGroups = {
-      group1: [], // TRV cooling water flow, TRV cooling air flow, TRV water pressure
+      group1: [], // TRV cooling water flow, TRV cooling air flow, TRV water pressure, TRV rad inlet temp, TRV rad outlet temp 
       group2: [], // ACY cooling airflow, ACY cooling temps
       group3: [], // Wheel Speed, Steering Angle
       group4: [], // Shock Travel, Tire Temperature
       group5: [], // Brake Rotor Temperature
       group6: [], // Strain in suspension linkages, Strain in half shafts
       group7: [], // Pitot Tube Air Pressure
+      group8: [], // SOC, battery health temp, pack voltage, current, average cell voltage, highest cell voltage, lowest cell voltage, 
+                  // highest clel temp, lowest cell temp, average cell temp, balancing current, C-rate, relay states, fault states, peanits
+      group9: [], // 3-Axis Accelerometer, Gyroscope, and Magnetometer data
   };
 
   // Variables to store the earliest and latest timestamps
