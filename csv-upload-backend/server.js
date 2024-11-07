@@ -15,8 +15,6 @@ const org = "BFR";
 const bucket = "datavistest";
 const client = new InfluxDB({ url: "http://localhost:8086", token });
 
-//const applyLogScale = (value) => (value > 0 ? Math.log10(value) : 0);
-
 const deleteAllData = async () => {
   const deleteApi = new DeleteAPI(client);
   const start = "1970-01-01T00:00:00Z";
@@ -42,7 +40,6 @@ app.post("/upload", async (req, res) => {
   }
 
   const file = req.files.file;
-  //const logScales = req.body.logScales ? JSON.parse(req.body.logScales) : {};
 
   let measurementGroups = {
     group1: [], // TRV cooling water flow, TRV cooling air flow, TRV water pressure, TRV rad inlet temp, TRV rad outlet temp
@@ -52,7 +49,8 @@ app.post("/upload", async (req, res) => {
     group5: [], // Brake Rotor Temperature
     group6: [], // Strain in suspension linkages, Strain in half shafts
     group7: [], // Pitot Tube Air Pressure
-    // group8: [], //SOC, battery health, temp, pack voltage, current, average cell voltage, highest cell voltage, lowest cell voltage, highest clel temp, lowest cell temp, average cell temp, balancing current, C-rate, relay states, fault states, peanits
+    group8: [], //SOC, battery health, temp, pack voltage, current, average cell voltage, highest cell voltage, lowest cell voltage, highest clel temp, lowest cell temp, average cell temp, balancing current, C-rate, relay states, fault states, peanits
+
   };
 
   // Variables to store the earliest and latest timestamps
@@ -88,7 +86,7 @@ app.post("/upload", async (req, res) => {
                   if (
                     [
                       "TRV cooling water flow",
-                      "TRV cooling airflow",
+                      "TRV cooling air flow",
                       "TRV water pressure",
                     ].includes(key)
                   ) {
@@ -115,12 +113,13 @@ app.post("/upload", async (req, res) => {
                   } else if (key === "Pitot Tube Air Pressure") {
                     measurementGroups.group7.push(key);
                   }
-                  // else if (key === "SOC", "battery health", "temp", "pack voltage", "current", "average cell voltage", "highest cell voltage", "lowest cell voltage", "highest clel temp", "lowest cell temp", "average cell temp", "balancing current", "C-rate", "relay states", "fault states", "peanits") {
-                  //   measurementGroups.group7.push(key);
-                  // }
+                  else if (key === "SOC", "battery health", "temp", "pack voltage", "current", "average cell voltage", "highest cell voltage", "lowest cell voltage", "highest clel temp", "lowest cell temp", "average cell temp", "balancing current", "C-rate", "relay states", "fault states", "peanits") {
+                    measurementGroups.group8.push(key);
+                  }
 
+                  
                   const point = new Point(key)
-                    .floatField("value", transformedValue)
+                    .floatField("value", value)
                     .timestamp(influxTimestamp);
 
                   writeApi.writePoint(point);

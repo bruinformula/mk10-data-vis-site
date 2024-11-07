@@ -83,7 +83,7 @@ const App = () => {
           </ul>
         </nav>
 
-        {/* Route Definitions */}
+        {}
         <Routes>
           <Route
             path="/"
@@ -92,7 +92,7 @@ const App = () => {
                 <h1>Data Visualizer</h1>
 
                 <div className="toggles-container">
-                  {/* Render a toggle for each group */}
+                  {}
                   {Object.keys(logScales).map((groupKey) => (
                     <div className="toggle-item" key={groupKey}>
                       <ToggleSwitch
