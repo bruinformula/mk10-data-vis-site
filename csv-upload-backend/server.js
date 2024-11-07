@@ -15,7 +15,7 @@ const org = "BFR";
 const bucket = "datavistest";
 const client = new InfluxDB({ url: "http://localhost:8086", token });
 
-const applyLogScale = (value) => (value > 0 ? Math.log10(value) : 0);
+//const applyLogScale = (value) => (value > 0 ? Math.log10(value) : 0);
 
 const deleteAllData = async () => {
   const deleteApi = new DeleteAPI(client);
@@ -42,16 +42,17 @@ app.post("/upload", async (req, res) => {
   }
 
   const file = req.files.file;
-  const logScales = req.body.logScales ? JSON.parse(req.body.logScales) : {};
+  //const logScales = req.body.logScales ? JSON.parse(req.body.logScales) : {};
 
   let measurementGroups = {
-      group1: [], // TRV cooling water flow, TRV cooling air flow, TRV water pressure
-      group2: [], // ACY cooling airflow, ACY cooling temps
-      group3: [], // Wheel Speed, Steering Angle
-      group4: [], // Shock Travel, Tire Temperature
-      group5: [], // Brake Rotor Temperature
-      group6: [], // Strain in suspension linkages, Strain in half shafts
-      group7: [], // Pitot Tube Air Pressure
+    group1: [], // TRV cooling water flow, TRV cooling air flow, TRV water pressure, TRV rad inlet temp, TRV rad outlet temp
+    group2: [], // ACY cooling airflow, ACY cooling temps
+    group3: [], // Wheel Speed, Steering Angle
+    group4: [], // Shock Travel, Tire Temperature
+    group5: [], // Brake Rotor Temperature
+    group6: [], // Strain in suspension linkages, Strain in half shafts
+    group7: [], // Pitot Tube Air Pressure
+    // group8: [], //SOC, battery health, temp, pack voltage, current, average cell voltage, highest cell voltage, lowest cell voltage, highest clel temp, lowest cell temp, average cell temp, balancing current, C-rate, relay states, fault states, peanits
   };
 
   // Variables to store the earliest and latest timestamps
@@ -68,35 +69,55 @@ app.post("/upload", async (req, res) => {
         const writeApi = client.getWriteApi(org, bucket);
         writeApi.useDefaultTags({ host: "host1" });
 
-              try {
-                  for (let row of data) {
-                      if (row._time) {
-                          const timestamp = new Date(row._time).getTime();
-                          // Update min and max timestamps
-                          if (!minTimestamp || timestamp < minTimestamp) minTimestamp = timestamp;
-                          if (!maxTimestamp || timestamp > maxTimestamp) maxTimestamp = timestamp;
+        try {
+          for (let row of data) {
+            if (row._time) {
+              const timestamp = new Date(row._time).getTime();
+              // Update min and max timestamps
+              if (!minTimestamp || timestamp < minTimestamp)
+                minTimestamp = timestamp;
+              if (!maxTimestamp || timestamp > maxTimestamp)
+                maxTimestamp = timestamp;
 
-                          const influxTimestamp = timestamp * 1000000;
-                          for (let key in row) {
-                              if (key !== '_time' && !isNaN(parseFloat(row[key]))) {
-                                  const value = parseFloat(row[key]);
+              const influxTimestamp = timestamp * 1000000;
+              for (let key in row) {
+                if (key !== "_time" && !isNaN(parseFloat(row[key]))) {
+                  const value = parseFloat(row[key]);
 
-                                  // Grouping logic
-                                  if (["TRV cooling water flow", "TRV cooling airflow", "TRV water pressure"].includes(key)) {
-                                      measurementGroups.group1.push(key);
-                                  } else if (["ACY cooling airflow", "ACY cooling temps"].includes(key)) {
-                                      measurementGroups.group2.push(key);
-                                  } else if (["Wheel Speed", "Steering Angle"].includes(key)) {
-                                      measurementGroups.group3.push(key);
-                                  } else if (["Shock Travel", "Tire Temperature"].includes(key)) {
-                                      measurementGroups.group4.push(key);
-                                  } else if (key === "Brake Rotor Temperature") {
-                                      measurementGroups.group5.push(key);
-                                  } else if (["Strain in suspension linkages", "Strain in half shafts"].includes(key)) {
-                                      measurementGroups.group6.push(key);
-                                  } else if (key === "Pitot Tube Air Pressure") {
-                                      measurementGroups.group7.push(key);
-                                  }
+                  // Grouping logic
+                  if (
+                    [
+                      "TRV cooling water flow",
+                      "TRV cooling airflow",
+                      "TRV water pressure",
+                    ].includes(key)
+                  ) {
+                    measurementGroups.group1.push(key);
+                  } else if (
+                    ["ACY cooling airflow", "ACY cooling temps"].includes(key)
+                  ) {
+                    measurementGroups.group2.push(key);
+                  } else if (["Wheel Speed", "Steering Angle"].includes(key)) {
+                    measurementGroups.group3.push(key);
+                  } else if (
+                    ["Shock Travel", "Tire Temperature"].includes(key)
+                  ) {
+                    measurementGroups.group4.push(key);
+                  } else if (key === "Brake Rotor Temperature") {
+                    measurementGroups.group5.push(key);
+                  } else if (
+                    [
+                      "Strain in suspension linkages",
+                      "Strain in half shafts",
+                    ].includes(key)
+                  ) {
+                    measurementGroups.group6.push(key);
+                  } else if (key === "Pitot Tube Air Pressure") {
+                    measurementGroups.group7.push(key);
+                  }
+                  // else if (key === "SOC", "battery health", "temp", "pack voltage", "current", "average cell voltage", "highest cell voltage", "lowest cell voltage", "highest clel temp", "lowest cell temp", "average cell temp", "balancing current", "C-rate", "relay states", "fault states", "peanits") {
+                  //   measurementGroups.group7.push(key);
+                  // }
 
                   const point = new Point(key)
                     .floatField("value", transformedValue)
