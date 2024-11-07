@@ -1,4 +1,8 @@
 // UploadCSV.js
+
+//or add the format checker here
+
+
 import React, { useState } from 'react';
 
 const UploadCSV = ({ handleFileUpload }) => {

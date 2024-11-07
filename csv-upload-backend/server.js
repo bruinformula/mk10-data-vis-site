@@ -1,22 +1,25 @@
-const express = require('express');
-const fileUpload = require('express-fileupload');
-const { InfluxDB, Point, HttpError } = require('@influxdata/influxdb-client');
-const { DeleteAPI } = require('@influxdata/influxdb-client-apis');
-const Papa = require('papaparse');
-const cors = require('cors');
+const express = require("express");
+const fileUpload = require("express-fileupload");
+const { InfluxDB, Point, HttpError } = require("@influxdata/influxdb-client");
+const { DeleteAPI } = require("@influxdata/influxdb-client-apis");
+const Papa = require("papaparse");
+const cors = require("cors");
 
 const app = express();
 app.use(cors());
 app.use(fileUpload());
 
-const token = 'pGbHo_VaHFs4TwlkKX7TKxyIos9C9swN-vTucxlm2uzoCNCX9Q3QlBYQ-IgPLYQf6ZqNVsNmGHEH9wXwliiZ4A==';
-const org = 'BFR';
-const bucket = 'datavistest';
-const client = new InfluxDB({ url: 'http://localhost:8086', token });
+const token =
+  "pGbHo_VaHFs4TwlkKX7TKxyIos9C9swN-vTucxlm2uzoCNCX9Q3QlBYQ-IgPLYQf6ZqNVsNmGHEH9wXwliiZ4A==";
+const org = "BFR";
+const bucket = "datavistest";
+const client = new InfluxDB({ url: "http://localhost:8086", token });
+
+const applyLogScale = (value) => (value > 0 ? Math.log10(value) : 0);
 
 const deleteAllData = async () => {
   const deleteApi = new DeleteAPI(client);
-  const start = '1970-01-01T00:00:00Z';
+  const start = "1970-01-01T00:00:00Z";
   const stop = new Date().toISOString();
   try {
     await deleteApi.postDelete({
@@ -27,29 +30,28 @@ const deleteAllData = async () => {
         stop,
       },
     });
-    console.log('Existing data deleted');
+    console.log("Existing data deleted");
   } catch (error) {
     console.error(`Error during data deletion: ${error.stack}`);
   }
 };
 
-app.post('/upload', async (req, res) => {
+app.post("/upload", async (req, res) => {
   if (!req.files || Object.keys(req.files).length === 0) {
-      return res.status(400).send('No files were uploaded.');
+    return res.status(400).send("No files were uploaded.");
   }
 
   const file = req.files.file;
+  const logScales = req.body.logScales ? JSON.parse(req.body.logScales) : {};
+
   let measurementGroups = {
-      group1: [], // TRV cooling water flow, TRV cooling air flow, TRV water pressure, TRV rad inlet temp, TRV rad outlet temp 
+      group1: [], // TRV cooling water flow, TRV cooling air flow, TRV water pressure
       group2: [], // ACY cooling airflow, ACY cooling temps
       group3: [], // Wheel Speed, Steering Angle
       group4: [], // Shock Travel, Tire Temperature
       group5: [], // Brake Rotor Temperature
       group6: [], // Strain in suspension linkages, Strain in half shafts
       group7: [], // Pitot Tube Air Pressure
-      group8: [], // SOC, battery health temp, pack voltage, current, average cell voltage, highest cell voltage, lowest cell voltage, 
-                  // highest clel temp, lowest cell temp, average cell temp, balancing current, C-rate, relay states, fault states, peanits
-      group9: [], // 3-Axis Accelerometer, Gyroscope, and Magnetometer data
   };
 
   // Variables to store the earliest and latest timestamps
@@ -57,14 +59,14 @@ app.post('/upload', async (req, res) => {
   let maxTimestamp = null;
 
   try {
-      await deleteAllData();
+    await deleteAllData();
 
-      Papa.parse(file.data.toString(), {
-          header: true,
-          complete: async (results) => {
-              const data = results.data;
-              const writeApi = client.getWriteApi(org, bucket);
-              writeApi.useDefaultTags({ host: 'host1' });
+    Papa.parse(file.data.toString(), {
+      header: true,
+      complete: async (results) => {
+        const data = results.data;
+        const writeApi = client.getWriteApi(org, bucket);
+        writeApi.useDefaultTags({ host: "host1" });
 
               try {
                   for (let row of data) {
@@ -80,7 +82,7 @@ app.post('/upload', async (req, res) => {
                                   const value = parseFloat(row[key]);
 
                                   // Grouping logic
-                                  if (["TRV cooling water flow", "TRV cooling airflow", "TRV water pressure", "TRV rad inlet temp" , "TRV rad outlet temp"].includes(key)) {
+                                  if (["TRV cooling water flow", "TRV cooling airflow", "TRV water pressure"].includes(key)) {
                                       measurementGroups.group1.push(key);
                                   } else if (["ACY cooling airflow", "ACY cooling temps"].includes(key)) {
                                       measurementGroups.group2.push(key);
@@ -94,35 +96,30 @@ app.post('/upload', async (req, res) => {
                                       measurementGroups.group6.push(key);
                                   } else if (key === "Pitot Tube Air Pressure") {
                                       measurementGroups.group7.push(key);
-                                  } else if (["SOC", "battery health", "temp", "pack voltage", "current", "average cell voltage", "highest cell voltage", "lowest cell voltage", "highest clel temp", "lowest cell temp", "average cell temp", "balancing current", "C-rate", "relay states", "fault states", "peanits"].includes(key)) {
-                                    measurementGroups.group8.push(key);
-                                  } else if (["3-Axis Accelerometer", "Gyroscope", "Magnetometer data"].includes(key)) {
-                                    measurementGroups.group9.push(key);
                                   }
-                            
 
-                                  const point = new Point(key)
-                                      .floatField('value', value)
-                                      .timestamp(influxTimestamp);
+                  const point = new Point(key)
+                    .floatField("value", transformedValue)
+                    .timestamp(influxTimestamp);
 
-                                  writeApi.writePoint(point);
-                              }
-                          }
-                      }
-                  }
-                  await writeApi.close();
-                  console.log('Finished writing points');
-                  res.json({ measurementGroups, minTimestamp, maxTimestamp });
-              } catch (err) {
-                  console.error(`Error writing points: ${err.stack}`);
-                  res.status(500).send(err.stack);
+                  writeApi.writePoint(point);
+                }
               }
-          },
-      });
+            }
+          }
+          await writeApi.close();
+          console.log("Finished writing points");
+          res.json({ measurementGroups, minTimestamp, maxTimestamp });
+        } catch (err) {
+          console.error(`Error writing points: ${err.stack}`);
+          res.status(500).send(err.stack);
+        }
+      },
+    });
   } catch (error) {
-      console.error(`Error during file upload: ${error.stack}`);
-      res.status(500).send(error.stack);
+    console.error(`Error during file upload: ${error.stack}`);
+    res.status(500).send(error.stack);
   }
 });
 
-app.listen(5001, () => console.log('Server started on port 5001'));
+app.listen(5001, () => console.log("Server started on port 5001"));
