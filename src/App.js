@@ -130,21 +130,19 @@ const App = () => {
                                   className="panel"
                                 >
                                   <iframe
-                                    src={`http://localhost:3000/d-solo/fdsshyafq8qv4e/new-dashboard?orgId=1&panelId=${
-                                      panelIndex + 3
-                                    }&from=${timeRanges[index].from}&to=${
+                                    src={`http://localhost:3000/d-solo/bdzlc21uq5s74c/new-dashboard?orgId=1&panelId=${
+                                      panelIndex + 1
+                                      }&from=${timeRanges[index].from}&to=${
                                       timeRanges[index].to
-                                    }`}
-                                    width="600"
-                                    height="400"
-                                    frameBorder="0"
-                                    onLoad={() => handleIframeLoad(groupKey)}
-                                    style={{
-                                      display: loadedPanels[groupKey]
-                                        ? "block"
-                                        : "none",
-                                    }}
-                                  ></iframe>
+                                      }`}
+                                      width="600"
+                                      height="400"
+                                      frameBorder="0"
+                                      onLoad={() => handleIframeLoad(groupKey)}
+                                      style={{ display: loadedPanels[groupKey] ? 'block' : 'none' }}
+                                    >
+                                    </iframe>
+              
                                 </div>
                               )
                           )}

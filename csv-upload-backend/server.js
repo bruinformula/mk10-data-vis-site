@@ -9,10 +9,9 @@ const app = express();
 app.use(cors());
 app.use(fileUpload());
 
-const token =
-  "pGbHo_VaHFs4TwlkKX7TKxyIos9C9swN-vTucxlm2uzoCNCX9Q3QlBYQ-IgPLYQf6ZqNVsNmGHEH9wXwliiZ4A==";
-const org = "BFR";
-const bucket = "datavistest";
+const token = 'zMc5avXB5H50inJvdDF20Y3-l5MA1Gm_J1vtO4EZfP0DVLRf1WBOnRzlZT8UDi03cDGXRW8fzpoJW09g5AWejg==';
+const org = 'BFR';
+const bucket = 'datavistest';
 const client = new InfluxDB({ url: "http://localhost:8086", token });
 
 const deleteAllData = async () => {
