@@ -130,8 +130,8 @@ const App = () => {
                                   className="panel"
                                 >
                                   <iframe
-                                    src={`http://localhost:3000/d-solo/bdzlc21uq5s74c/new-dashboard?orgId=1&panelId=${
-                                      panelIndex + 1
+                                    src={`http://localhost:3000/d-solo/fdsshyafq8qv4e/new-dashboard?orgId=1&panelId=${
+                                      panelIndex + 3
                                       }&from=${timeRanges[index].from}&to=${
                                       timeRanges[index].to
                                       }`}

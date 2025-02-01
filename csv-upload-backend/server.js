@@ -9,9 +9,10 @@ const app = express();
 app.use(cors());
 app.use(fileUpload());
 
-const token = 'zMc5avXB5H50inJvdDF20Y3-l5MA1Gm_J1vtO4EZfP0DVLRf1WBOnRzlZT8UDi03cDGXRW8fzpoJW09g5AWejg==';
-const org = 'BFR';
-const bucket = 'datavistest';
+const token =
+  "zMc5avXB5H50inJvdDF20Y3-l5MA1Gm_J1vtO4EZfP0DVLRf1WBOnRzlZT8UDi03cDGXRW8fzpoJW09g5AWejg=="; //SHOP PC KEY 
+const org = "BFR";
+const bucket = "datavistest";
 const client = new InfluxDB({ url: "http://localhost:8086", token });
 
 const deleteAllData = async () => {
@@ -49,7 +50,6 @@ app.post("/upload", async (req, res) => {
     group6: [], // Strain in suspension linkages, Strain in half shafts
     group7: [], // Pitot Tube Air Pressure
     group8: [], //SOC, battery health, temp, pack voltage, current, average cell voltage, highest cell voltage, lowest cell voltage, highest clel temp, lowest cell temp, average cell temp, balancing current, C-rate, relay states, fault states, peanits
-
   };
 
   // Variables to store the earliest and latest timestamps
@@ -111,12 +111,27 @@ app.post("/upload", async (req, res) => {
                     measurementGroups.group6.push(key);
                   } else if (key === "Pitot Tube Air Pressure") {
                     measurementGroups.group7.push(key);
-                  }
-                  else if (key === "SOC", "battery health", "temp", "pack voltage", "current", "average cell voltage", "highest cell voltage", "lowest cell voltage", "highest clel temp", "lowest cell temp", "average cell temp", "balancing current", "C-rate", "relay states", "fault states", "peanits") {
+                  } else if (
+                    (key === "SOC",
+                    "battery health",
+                    "temp",
+                    "pack voltage",
+                    "current",
+                    "average cell voltage",
+                    "highest cell voltage",
+                    "lowest cell voltage",
+                    "highest clel temp",
+                    "lowest cell temp",
+                    "average cell temp",
+                    "balancing current",
+                    "C-rate",
+                    "relay states",
+                    "fault states",
+                    "peanits")
+                  ) {
                     measurementGroups.group8.push(key);
                   }
 
-                  
                   const point = new Point(key)
                     .floatField("value", value)
                     .timestamp(influxTimestamp);
